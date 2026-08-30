@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Clock</title>
+<style>
+  :root{
+    --ink: #10141F;
+    --parchment: #EDE7D8;
+    --parchment-dim: #A9A398;
+    --amber: #E3A559;
+    --line: #2A3142;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6vw 6vw;
+  }
+  .clocks{
+    width: 100%;
+    max-width: 640px;
+  }
+  .clock-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 1.4rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .clock-row:first-child{ padding-top: 0; }
+  .city-name{
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--parchment);
+  }
+  .time-block{
+    font-family: 'Courier New', Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    white-space: nowrap;
+  }
+  .time-block .secs{
+    color: var(--amber);
+    font-size: 0.6em;
+  }
+  .time-block .ampm{
+    color: var(--parchment-dim);
+    font-size: 0.55em;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<div class="clocks" id="clocks"></div>
+
+<script>
+  const cities = [
+    ["NA-East", "America/New_York"],
+    ["NA-Central", "America/Chicago"],
+    ["NA-West", "America/Los_Angeles"],
+    ["Europe", "Europe/Berlin"],
+    ["Oceania", "Australia/Sydney"],
+    ["Brazil", "America/Sao_Paulo"],
+    ["Asia", "Asia/tokyo"],
+    ["Middle East", "Europe/Athens"]
+  ];
+
+  const clocksEl = document.getElementById('clocks');
+
+  function buildRow(name, tz){
+    const row = document.createElement('div');
+    row.className = 'clock-row';
+    row.dataset.tz = tz;
+    row.innerHTML = `
+      <div class="city-name">${name}</div>
+      <div class="time-block"></div>
+    `;
+    return row;
+  }
+
+  function getParts(tz){
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour12: true,
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    const map = {};
+    fmt.formatToParts(new Date()).forEach(p => map[p.type] = p.value);
+    return map;
+  }
+
+  function render(){
+    clocksEl.innerHTML = '';
+    cities.forEach(([name, tz]) => clocksEl.appendChild(buildRow(name, tz)));
+    tick();
+  }
+
+  function tick(){
+    document.querySelectorAll('.clock-row').forEach(row => {
+      const p = getParts(row.dataset.tz);
+      row.querySelector('.time-block').innerHTML =
+        `${p.hour}:${p.minute}<span class="secs">:${p.second}</span> <span class="ampm">${p.dayPeriod}</span>`;
+    });
+  }
+
+  render();
+  setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
